@@ -8,6 +8,12 @@ class FollowFlowFieldBehaviour extends Behaviour
     this.flowField = flowField;
   }
   
+  FollowFlowFieldBehaviour(String name, float multiplier, FlowField flowField, boolean syncToMusic, int band, float minBandValue, float maxBandValue, float bandSensitivity)
+  {
+    super(name, multiplier, syncToMusic, band, minBandValue, maxBandValue, bandSensitivity);
+    this.flowField = flowField;
+  }
+  
   PVector getForce(Vehicle v, VehicleContext vc)
   {
     PVector desired = this.flowField.lookup(v.location);
@@ -18,6 +24,8 @@ class FollowFlowFieldBehaviour extends Behaviour
     // Reynold's formula for steering force with a cap
     PVector steer = PVector.sub(desired, v.velocity);
     steer.limit(v.maxForce*magSq);
+
+    v.maxSpeedMult = magSq;
 
     return steer;
   }

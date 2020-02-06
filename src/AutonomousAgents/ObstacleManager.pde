@@ -5,6 +5,8 @@ abstract class BoundingShape
 	}
 
 	abstract PVector lineIntersect(PVector p1, PVector p2);
+  abstract void setPosition(float x, float y);
+  abstract void setDimensions(float w, float h);
 }
 
 class BoundingBox extends BoundingShape
@@ -58,6 +60,18 @@ class BoundingBox extends BoundingShape
 
 		return closestIntersection;
 	}
+
+  void setPosition(float x, float y)
+  {
+    this.x = x;
+    this.y = y;
+  }
+  
+  void setDimensions(float w, float h)
+  {
+    this.w = w;
+    this.h = h;
+  }
 
 	private PVector lineLineIntersect(PVector p1, PVector p2, PVector p3, PVector p4)
 	{
@@ -139,25 +153,66 @@ class BoundingCircle extends BoundingShape
 
   	return ip2;
 	}
+
+  void setPosition(float x, float y)
+  {
+    this.position.set(x, y);
+  }
+  
+  void setDimensions(float r, float _)
+  {
+    this.r = r;
+  }
 }
 
 class Obstacle
 {
+  PVector originalPosition;
 	PVector position;
 	PShape shape;
 	BoundingShape boundingShape;
+  boolean hidden;
+
+  Obstacle(PVector position, PShape shape, BoundingShape boundingShape, boolean hidden)
+  {
+    this.originalPosition = position.copy();
+    this.position = position;
+    this.shape = shape;
+    this.boundingShape = boundingShape;
+    this.hidden = hidden;
+  }
 
 	Obstacle(PVector position, PShape shape, BoundingShape boundingShape)
 	{
-		this.position = position;
-		this.shape = shape;
-		this.boundingShape = boundingShape;
+    this(position, shape, boundingShape, false);
 	}
 
 	void display()
 	{
-		shape(this.shape);
+    if (!this.hidden)
+    {
+      // If this shape has been moved from it's original position
+      // TODO: fix scale
+      if (this.position.x != this.originalPosition.x || this.position.y != this.originalPosition.y)
+      {
+        this.shape.resetMatrix();
+        this.shape.translate(this.position.x - this.originalPosition.x, this.position.y - this.originalPosition.y);
+      }
+      
+      shape(this.shape);
+    }
 	}
+
+  void setPosition(float x, float y)
+  {
+    this.position.set(x, y);
+    this.boundingShape.setPosition(x, y);
+  }
+  
+  void setDimensions(float w, float h)
+  {
+    this.boundingShape.setDimensions(w, h);
+  }
 
 	PVector lineIntersect(PVector p1, PVector p2)
 	{
@@ -186,11 +241,11 @@ class ObstacleManager
 	ObstacleManager()
 	{
 		this.obstacles = new ArrayList<Obstacle>();
-    //this.addRectangleObstacle(width/2, height/2, 250, 20);
-    //this.addRectangleObstacle(width/2, height/2, 20, 250);
-    this.addCircleObstacle(width/2, 200, 50);
-    this.addCircleObstacle(width/2, height/2, 50);
-    this.addCircleObstacle(width/2, height-200, 50);
+    //this.addRectangleObstacle(width/2, height/2, 250, 20, false);
+    //this.addRectangleObstacle(width/2, height/2, 20, 250, false);
+    this.addCircleObstacle(width/2, 200, 50, false);
+    this.addCircleObstacle(width/2, height/2, 50, false);
+    this.addCircleObstacle(width/2, height-200, 50, false);
 
 	}
 
@@ -202,23 +257,30 @@ class ObstacleManager
 		}
 	}
 
-  void addRectangleObstacle(float x, float y, float w, float h)
+  Obstacle addRectangleObstacle(float x, float y, float w, float h, boolean hidden)
   {
     float rcx = x - w/2;
     float rcy = y - h/2;
     
     PShape box = createShape(RECT, rcx, rcy, w, h);
     BoundingBox boundingBox = new BoundingBox(rcx, rcy, w, h);
-    Obstacle obstacle = new Obstacle(new PVector(x, y), box, boundingBox);
+    Obstacle obstacle = new Obstacle(new PVector(x, y), box, boundingBox, hidden);
     this.obstacles.add(obstacle);
+    return obstacle;
   }
   
-  void addCircleObstacle(float x, float y, float r)
+  Obstacle addCircleObstacle(float x, float y, float r, boolean hidden)
   {
     PShape circle = createShape(ELLIPSE, x, y, r*2, r*2);
     BoundingCircle boundingCircle = new BoundingCircle(x, y, r);
-    Obstacle obstacle = new Obstacle(new PVector(x, y), circle, boundingCircle);
+    Obstacle obstacle = new Obstacle(new PVector(x, y), circle, boundingCircle, hidden);
     this.obstacles.add(obstacle);
+    return obstacle;
+  }
+  
+  void removeObstacle(Obstacle obstacle)
+  {
+    this.obstacles.remove(obstacle);
   }
 
 	ObstacleHit getClosestObstacleHit(PVector p1, PVector p2)

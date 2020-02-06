@@ -4,59 +4,64 @@ import ch.bildspur.postfx.*;
 
 import controlP5.*;
 
-import processing.sound.*;
 import java.util.Arrays;
 import java.util.List;
+
+PApplet applet;
 
 FlockManager flockManager;
 VisitorManager visitorManager;
 ObstacleManager obstacleManager;
+AudioManager audioManager;
+EncounterManager encounterManager;
 
 FlowField field;
 Theme selectedTheme;
 int initializationIdx = 0;
+int selectedThemeIdx = 0;
 int selectedFlockIdx = 0;
-SoundFile sample;
-float rmsSum; // Used for smoothing
-Amplitude rms;
 ControlP5 cp5;
 Group cp5group;
 ScrollableList flockList;
 PostFX pfx;
 boolean showVectorField = true;
 
+final float FPS = 40;
+final float GAMESPEED = 40;
+float previousMilli, deltaDiv, deltaTime;
+
 void setup()
 {
-  size(1600, 900, P3D);
-  frameRate(50);
+  //size(1920, 1080, P3D);
+  fullScreen(P3D);
+  frameRate(FPS);
   smooth(2);
  
-  // Load and play a soundfile and loop it
-  sample = new SoundFile(this, "media/lento.wav");
-  sample.loop();
+  applet = this;
 
   // Create managers
   visitorManager = new VisitorManager(790, true);
   flockManager = new FlockManager(Config.numFlocks, Config.numVehicles/Config.numFlocks);
   obstacleManager = new ObstacleManager();
+  audioManager = new AudioManager(Config.rmsSmoothFactor);
+  encounterManager = new EncounterManager();
   
-  // Create and patch the rms tracker
-  rms = new Amplitude(this);
-  rms.input(sample);
+  // Load the audio file
+  audioManager.loadAudioFile("media/deceptive.wav");
   
   pfx = new PostFX(this);
   pfx.preload(BloomPass.class);
-  
+    
   initialize();
 }
 
 void initialize()
 {
   randomSeed(777 + initializationIdx);
-  selectedTheme = THEMES[initializationIdx%THEMES.length];
+  selectedTheme = THEMES[selectedThemeIdx%THEMES.length];
   
   // Initialize flow field
-  field = new FlowField(10, 0.005);
+  field = new FlowField(10, 5, 0.005);
   
   // Initialize flocks
   flockManager.initialize();
@@ -66,6 +71,7 @@ void initialize()
 
   initializeControlP5();
   
+  selectedThemeIdx += 1;
   initializationIdx += 1;
 }
 
@@ -151,6 +157,17 @@ void initializeControlP5()
      .setColorValue(selectedFlock.flockColor);
 }
 
+void changeTheme(int themeIdx)
+{
+  selectedThemeIdx = themeIdx%THEMES.length;
+  selectedTheme = THEMES[selectedThemeIdx%THEMES.length];
+
+  for (Flock f : flockManager.flocks)
+  {
+    f.setColor(selectedTheme.getRandomThemeColor());
+  }
+}
+
 void draw()
 { 
   // Print information to title bar
@@ -181,13 +198,20 @@ void draw()
   
   // Draw the flocks
   flockManager.display();
+  
+  // Draw encounters
+  encounterManager.display();
 }
 
 void update()
 {
-  // Update rmsSum
-  rmsSum += (rms.analyze() - rmsSum) * Config.rmsSmoothFactor;
-
+  // Update the delta time
+  deltaTime = ((millis() - previousMilli) / 1000.0) * GAMESPEED;
+  previousMilli = millis();
+  
+  // Update the audio values
+  audioManager.update();
+  
   // Update flow field
   field.update();
 
@@ -196,6 +220,9 @@ void update()
 
   // Update each flock and their vehicles
   flockManager.update();
+  
+  // Update encounters
+  encounterManager.update();
 }
 
 public void keyPressed()
@@ -204,6 +231,10 @@ public void keyPressed()
   if (key == 'n')
   {
     initialize();
+  }
+  else if (key == 't')
+  {
+    changeTheme(selectedThemeIdx + 1);
   }
 }
 

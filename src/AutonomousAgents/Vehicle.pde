@@ -5,8 +5,11 @@ class Vehicle
   PVector velocity;
   PVector acceleration;
   float r;
-  float maxSpeed;
-  float maxForce;
+  float maxSpeed;      // Current maximum
+  float maxSpeedStore; // A value for storing the real non-ramped maximum
+  float maxSpeedMult;
+  float maxForce;      // Current maximum
+  float maxForceStore; // A value for storing the real non-ramped maximum
   color vehicleColor;
   Trail trail;
   
@@ -22,13 +25,16 @@ class Vehicle
     this.velocity = new PVector(0, 0);
     this.location = new PVector(x, y);
     this.r = r;
+    this.maxSpeedStore = maxSpeed;
     this.maxSpeed = maxSpeed;
+    this.maxSpeedMult = 1.0;
+    this.maxForceStore = maxForce;
     this.maxForce = maxForce;
     this.vehicleColor = vehicleColor;
     this.lifeTime = lifeTime;
     this.remainingLifeTime = lifeTime;
     this.birthTime = millis();
-    this.trail = new Trail(8, this.vehicleColor);
+    this.trail = new Trail(16, this.vehicleColor);
   }
   
   void update()
@@ -42,11 +48,14 @@ class Vehicle
     // Update remaining life time
     this.remainingLifeTime = lifeTime - (millis() - this.birthTime);
     
+    // Ramp up max speed and max force
+    this.maxSpeed = getRampedValue(this.getUsedLife(), 0.1*this.maxSpeedStore, this.maxSpeedStore, 0.3, 0.05);
+    this.maxForce = getRampedValue(this.getUsedLife(), 0.1*this.maxForceStore, this.maxForceStore, 0.3, 0.05);
+    
     // Update position, velocity and acceleration
-    this.velocity.add(this.acceleration);
-    // TODO: Fix this, the max speed must be limited
-    //this.velocity.limit(this.maxSpeed);
-    this.location.add(this.velocity);
+    this.velocity.add(this.acceleration.mult(deltaTime));
+    this.velocity.limit(this.maxSpeed*this.maxSpeedMult);
+    this.location.add(this.velocity.mult(deltaTime));
     this.acceleration.mult(0);
     
     // Use modulus arithmetic to keep the vehicle within screen bounds
@@ -73,7 +82,7 @@ class Vehicle
     }
     
     // Update the trail vertices every n frames (otherwise this gets heavy)
-    if (frameCount%5 == 0)
+    if (frameCount%1 == 0)
     {
       this.trail.addVertex(this.location.x, this.location.y);
     }
@@ -95,51 +104,26 @@ class Vehicle
     return this.remainingLifeTime > 0;
   }
   
-  private void stayWithinWalls()
+  float getUsedLife()
   {
-    // If we are within a distance d of a wall, move at maximum speed
-    // in the opposite direction of the wall
-    int d = 50;
-    
-    if (location.x < d || location.x > width - d)
-    {
-      // Determine the sign of the required movement
-      int sign = location.x < d ? 1 : -1;
-      
-      // Zero any existing acceleration
-      this.acceleration.mult(0);
-      
-      // Calculate new steering
-      PVector desired = new PVector(sign * this.maxSpeed, this.velocity.y);
-      PVector steer = PVector.sub(desired, this.velocity);
-      steer.limit(this.maxForce);
-      applyForce(steer);
-    }
-    
-    if (location.y < d || location.y > height - d)
-    {
-      // Determine the sign of the required movement
-      int sign = location.x < d ? 1 : -1;
-      
-      // Zero any existing acceleration
-      this.acceleration.mult(0);
-      
-      // Calculate new steering
-      PVector desired = new PVector(this.velocity.x, sign * this.maxSpeed);
-      PVector steer = PVector.sub(desired, this.velocity);
-      steer.limit(this.maxForce);
-      applyForce(steer);
-    }
+    return max((float)(this.lifeTime-this.remainingLifeTime)/this.lifeTime, 0);
   }
   
   void display()
   {
+    // Ramp up the alpha from min to max during ramp up period
+    // Ramp down the alpha from max to min during ramp down period
+    float alpha = getRampedValue(this.getUsedLife(), 10, 255, 0.3, 0.05);
+    float currentRadius = getRampedValue(this.getUsedLife(), this.r*0.3, this.r*1.5, 0.3, 0.0);
+
     // Draw the trail
-    this.trail.display();
+    this.trail.display(currentRadius, alpha);
+    
+    fill(this.vehicleColor, alpha);
+    circle(this.location.x, this.location.y, currentRadius);
     
     // Vehicle is a triangle pointing in the direction of velocity; since it is drawn pointing up, we rotate it an additional 90 degrees.
-    float theta = this.velocity.heading() + PI/2;
-    float alpha = 255.0;
+    /*float theta = this.velocity.heading() + PI/2;
     fill(this.vehicleColor, alpha);
     strokeWeight(0);
     stroke(0);
@@ -148,7 +132,8 @@ class Vehicle
     pushMatrix();
     translate(this.location.x, this.location.y);
     rotate(theta);
-    triangle(0, -this.r*2, -this.r, this.r*2, this.r, this.r*2);
-    popMatrix();
+    float currentRadius = getRampedValue(this.getUsedLife(), this.r*0.3, this.r, 0.3, 0.0);
+    triangle(0, -currentRadius*2, -currentRadius, currentRadius*2, currentRadius, currentRadius*2);
+    popMatrix();*/
   }
 }

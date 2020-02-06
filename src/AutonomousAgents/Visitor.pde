@@ -11,11 +11,12 @@ class Visitor
   float r;
   float vfr;
   boolean active;
+  boolean alive;
   int vfType;
   VisitorType type;
   
   color activeColor = color(255);
-  color inactiveColor = color(180);
+  color inactiveColor = color(180);//selectedTheme.backgroundColor; //color(180);
   
   Visitor(String id, VisitorType type, PVector location, float r, float vfr)
   {
@@ -25,6 +26,7 @@ class Visitor
     this.vfr = vfr;
     this.vfType = round(random(0, 1));
     this.type = type;
+    this.alive = true;
   }
   
   void update()

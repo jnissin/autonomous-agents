@@ -49,18 +49,24 @@ class VisitorManager implements TuioListener
 
   void update()
   {
-    for (Visitor v : this.visitors)
+    synchronized(this.visitors)
     {
-      v.update();
+      for (Visitor v : this.visitors)
+      {
+        v.update();
+      }
     }
   }
   
   void display()
   {
-    for (Visitor v : this.visitors)
+    synchronized(this.visitors)
     {
-      v.display();
-    } 
+      for (Visitor v : this.visitors)
+      {
+        v.display();
+      } 
+    }
   }
 
   void addVisitor(Visitor v)
@@ -85,6 +91,7 @@ class VisitorManager implements TuioListener
     {
       Visitor v = this.idToVisitor.get(id);
       synchronized(this.visitors) {
+        v.alive = false;
         this.visitors.remove(v);
       }
       this.idToVisitor.remove(id);
@@ -135,15 +142,17 @@ class VisitorManager implements TuioListener
     if (this.verbose)
     {
       println("add cur "+tcur.getCursorID()+" ("+tcur.getSessionID()+ ") " +tcur.getX()+" "+tcur.getY());
-      Visitor v = new Visitor(
-        String.format("T%d", tcur.getCursorID()),
-        VisitorType.TUIO,
-        new PVector(tcur.getX()*width, tcur.getY()*height),
-        20.0,
-        120.0);
-        
-      this.addVisitor(v);
+
     }
+    
+    Visitor v = new Visitor(
+      String.format("T%d", tcur.getCursorID()),
+      VisitorType.TUIO,
+      new PVector(tcur.getX()*width, tcur.getY()*height),
+      20.0,
+      120.0);
+    
+    this.addVisitor(v);
   }
 
   // called when a cursor is moved
@@ -152,15 +161,16 @@ class VisitorManager implements TuioListener
     if (this.verbose)
     {
       println("set cur "+tcur.getCursorID()+" ("+tcur.getSessionID()+ ") " +tcur.getX()+" "+tcur.getY()+" "+tcur.getMotionSpeed()+" "+tcur.getMotionAccel());
-      String id = String.format("T%d", tcur.getCursorID());
+    }
+    
+    String id = String.format("T%d", tcur.getCursorID());
 
-      if (this.idToVisitor.containsKey(id))
+    if (this.idToVisitor.containsKey(id))
+    {
+      synchronized (this.visitors)
       {
-        synchronized (this.visitors)
-        {
-          Visitor v = this.idToVisitor.get(id);
-          v.location.set(tcur.getX() * width, tcur.getY() * height);
-        }
+        Visitor v = this.idToVisitor.get(id);
+        v.location.set(tcur.getX() * width, tcur.getY() * height);
       }
     }
   }
@@ -171,9 +181,10 @@ class VisitorManager implements TuioListener
     if (this.verbose)
     {
       println("del cur "+tcur.getCursorID()+" ("+tcur.getSessionID()+")");
-      String id = String.format("T%d", tcur.getCursorID());
-      this.removeVisitor(id);
     }
+    
+    String id = String.format("T%d", tcur.getCursorID());
+    this.removeVisitor(id);
   }
 
   // --------------------------------------------------------------

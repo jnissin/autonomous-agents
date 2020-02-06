@@ -3,35 +3,69 @@ class FlowField
   PVector[][] field;
   PVector[][] blendField;
   int[][]     blendTime;
+  float[][]   previousAngle;
   
-  int cols, rows;
+  int cols;
+  int rows;
   int resolution;
+  float vectorLength;
   float mutationSpeed;
-    
-  FlowField(int resolution, float mutationSpeed)
+  
+  PShape vectors;
+  
+  FlowField(int resolution, float vectorLength, float mutationSpeed)
   {
     this.resolution = resolution;
+    this.vectorLength = vectorLength;
     this.mutationSpeed = mutationSpeed;
     this.cols = width/this.resolution;
     this.rows = height/this.resolution;
     this.field = new PVector[cols][rows];
     this.blendField = new PVector[cols][rows];
     this.blendTime = new int[cols][rows];
-        
+    this.vectors = createShape(PShape.GROUP);
+    this.previousAngle = new float[cols][rows];
+    
     for (int i = 0; i < cols; i++)
     {
       for (int j = 0; j < rows; j++)
       {
         this.field[i][j] = new PVector(0, 0);
         this.blendField[i][j] = new PVector(0, 0);
+        
+        float halfLen = this.vectorLength/2;
+        PVector d = field[i][j];
+        float cx = i*this.resolution + this.resolution/2;
+        float cy = j*this.resolution + this.resolution/2;
+        float x1 = int(constrain(cx - halfLen*d.x, 0, width));
+        float y1 = int(constrain(cy - halfLen*d.y, 0, height));
+        float x2 = int(constrain(cx + halfLen*d.x, 0, width));
+        float y2 = int(constrain(cy + halfLen*d.y, 0, height));
+        
+        PShape part = createShape();
+        part.beginShape(LINES);
+        part.noFill();
+        part.noTint();
+        part.strokeWeight(2);
+        part.stroke(color(255));
+        part.normal(0, 0, 1);
+        part.vertex(x1, y1, -1);
+        part.vertex(x2, y2, -1);
+        part.endShape();
+        vectors.addChild(part);
       }
-    }    
+    }
   }
   
   void update()
   {
     // Declare visitor variables
     PVector visitorFieldVector = new PVector(0, 0);
+    
+    // Calculate current color values including alpha
+    float alpha = constrain(100.0 + audioManager.getAmplitude()*255.0, 0.0, 255.0);
+    color c1 = color(red(selectedTheme.vectorFieldColors[0]), green(selectedTheme.vectorFieldColors[0]), blue(selectedTheme.vectorFieldColors[0]), alpha);
+    color c2 =  color(red(selectedTheme.vectorFieldColors[1]), green(selectedTheme.vectorFieldColors[1]), blue(selectedTheme.vectorFieldColors[1]), alpha);
     
     for (int i = 0; i < cols; i++)
     {
@@ -78,7 +112,29 @@ class FlowField
           }
           
           // Normalize the force of the flow field if there are no visitors in range
-          field[i][j].normalize(field[i][j]);
+          field[i][j].normalize(field[i][j]);          
+        }
+        
+        // Update the stroke
+        PShape part = this.vectors.getChild(i*rows + j);
+        float a = atan2(field[i][j].y, field[i][j].x);
+        float v = map(a, -PI, PI, 0, 1);
+        part.setStroke(lerpColor(c1, c2, v));
+
+        if (frameCount < 2 || abs(a - this.previousAngle[i][j]) > 0.174)
+        {
+          float halfLen = this.vectorLength/2;
+          PVector d = field[i][j];
+          float cx = i*this.resolution + this.resolution/2;
+          float cy = j*this.resolution + this.resolution/2;
+          float x1 = int(constrain(cx - halfLen*d.x, 0, width));
+          float y1 = int(constrain(cy - halfLen*d.y, 0, height));
+          float x2 = int(constrain(cx + halfLen*d.x, 0, width));
+          float y2 = int(constrain(cy + halfLen*d.y, 0, height));
+        
+          part.setVertex(0, x1, y1, -1);
+          part.setVertex(1, x2, y2, -1);
+          previousAngle[i][j] = a;
         }
       }
     }
@@ -133,7 +189,9 @@ class FlowField
   
   void display()
   {
+    /*
     strokeWeight(2);
+    
     for (int i = 0; i < this.cols; i++)
     {
       for (int j = 0; j < this.rows; j++)
@@ -144,12 +202,14 @@ class FlowField
          int y1 = int(constrain(j*this.resolution + this.resolution/2, 0, height));
          int x2 = int(constrain(x1 + len*d.x, 0, width));
          int y2 = int(constrain(y1 + len*d.y, 0, height));
-         color c = color(d.x*255.0, d.y*255.0, 255.0, constrain(100.0 + rmsSum*255.0*1.5, 0.0, 255.0));
+         color c = color(d.x*255.0, d.y*255.0, 255.0, constrain(100.0 + audioManager.getAmplitude()*255.0*1.5, 0.0, 255.0));
          fill(c);
          stroke(c);
          line(x1, y1, -1, x2, y2, -1);
       }
     }
+    */
+    shape(this.vectors);
   }
   
   PVector lookup(PVector position)

@@ -37,17 +37,22 @@ class Trail
   
   void display()
   {        
+    this.display(2, 255);
+  }
+  
+  void display(float radius, float maxAlpha)
+  {
     int n = this.verticesPopulated ? vertices.length : this.vertexIdx;
     int latestVertexIdx = this.vertexIdx - 1;
     
-    strokeWeight(2);
+    strokeWeight(radius);
     noFill();
     beginShape();
     for (int i = 0; i < n; i++)
     {
       int idx = latestVertexIdx - i;
       idx = idx < 0 ? idx + n : idx;
-      stroke(this.trailColor, map(i, 0, n, 255, 0));
+      stroke(this.trailColor, map(i, 0, n, maxAlpha, 0));
       vertex(this.vertices[idx].x, this.vertices[idx].y);
     }
     endShape();

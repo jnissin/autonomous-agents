@@ -1,26 +1,34 @@
 class SeparateBehaviour extends Behaviour
 {
   private PVector sum;
-
-  SeparateBehaviour(String name, float multiplier)
+  private float desiredSeparation;
+  
+  SeparateBehaviour(String name, float multiplier, float desiredSeparation)
   {
     super(name, multiplier);
+    this.desiredSeparation = desiredSeparation;
+    this.sum = new PVector(0, 0);
+  }
+  
+  SeparateBehaviour(String name, float multiplier, float desiredSeparation, boolean syncToMusic, int band, float minBandValue, float maxBandValue, float bandSensitivity)
+  {
+    super(name, multiplier, syncToMusic, band, minBandValue, maxBandValue, bandSensitivity);
+    this.desiredSeparation = desiredSeparation;
     this.sum = new PVector(0, 0);
   }
   
   PVector getForce(Vehicle v, VehicleContext vc)
   {
+    // Specify the desired separation such as 20 pixels
+    float currentDesiredSeparation = this.desiredSeparation;
     this.sum.set(0, 0);
     int count = 0;
-
-    // Specify the desired separation such as 20 pixels
-    float desiredSeparation = 40;
-    
+ 
     for (Vehicle other : vc.vehicles)
     {
       float d = PVector.dist(v.location, other.location);
       
-      if ((d > 0) && (d < desiredSeparation))
+      if ((d > 0) && (d < currentDesiredSeparation))
       {
         // Calculate a vector pointing away from the other's location
         PVector diff = PVector.sub(v.location, other.location);

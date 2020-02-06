@@ -1,12 +1,28 @@
 class ArriveBehaviour extends Behaviour
 {
-  ArriveBehaviour(String name, float multiplier)
+  private boolean global;
+  private float senseRadius;
+  private float rampDownDistance;
+  
+  
+  ArriveBehaviour(String name, float multiplier, boolean global, float senseRadius, float rampDownDistance)
   {
     super(name, multiplier);
+    this.senseRadius = senseRadius;
+    this.rampDownDistance = rampDownDistance;
+  }
+  
+  ArriveBehaviour(String name, float multiplier, boolean global, float senseRadius, float rampDownDistance, boolean syncToMusic, int band, float minBandValue, float maxBandValue, float bandSensitivity)
+  {
+    super(name, multiplier, syncToMusic, band, minBandValue, maxBandValue, bandSensitivity);
+    this.senseRadius = senseRadius;
+    this.rampDownDistance = rampDownDistance;
   }
   
   PVector getForce(Vehicle v, VehicleContext vc)
   { 
+    float currentRampDownDistance = this.rampDownDistance;
+    
     // Select the closest target
     PVector target = vc.getClosestTarget(v.location);
    
@@ -21,10 +37,15 @@ class ArriveBehaviour extends Behaviour
     // Get the distance to the target
     float d = desired.mag();
     
-    // If we are closer than d pixels - set the magnitude according to how close we are
-    if (d < 100)
+    if (!global && d > senseRadius)
     {
-      float m = map(d, 0, 100, 0, v.maxSpeed);
+      return new PVector(0, 0);
+    }
+    
+    // If we are closer than d pixels - set the magnitude according to how close we are
+    if (d < currentRampDownDistance)
+    {
+      float m = map(d, 0, currentRampDownDistance, 0, v.maxSpeed);
       desired.mult(m);
     }
     
