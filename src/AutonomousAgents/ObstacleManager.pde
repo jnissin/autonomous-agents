@@ -243,10 +243,9 @@ class ObstacleManager
 		this.obstacles = new ArrayList<Obstacle>();
     //this.addRectangleObstacle(width/2, height/2, 250, 20, false);
     //this.addRectangleObstacle(width/2, height/2, 20, 250, false);
-    this.addCircleObstacle(width/2, 200, 50, false);
-    this.addCircleObstacle(width/2, height/2, 50, false);
-    this.addCircleObstacle(width/2, height-200, 50, false);
-
+    this.addCircleObstacle(450, height-300, 50, false);
+    this.addCircleObstacle(width-450, 300, 50, false);
+    //this.addCircleObstacle(width/2, height-200, 50, false);
 	}
 
 	void display()
@@ -271,9 +270,12 @@ class ObstacleManager
   
   Obstacle addCircleObstacle(float x, float y, float r, boolean hidden)
   {
-    PShape circle = createShape(ELLIPSE, x, y, r*2, r*2);
+    //PShape circle = createShape(ELLIPSE, x, y, r*2, r*2);
+    PShape box = createShape(RECT, x-(r*2), y-(r*2), r*2, r*2);
+    box.setStroke(false);
+    box.setTexture(loadImage("media/peach-green-flower3.png"));
     BoundingCircle boundingCircle = new BoundingCircle(x, y, r);
-    Obstacle obstacle = new Obstacle(new PVector(x, y), circle, boundingCircle, hidden);
+    Obstacle obstacle = new Obstacle(new PVector(x, y), box, boundingCircle, hidden);
     this.obstacles.add(obstacle);
     return obstacle;
   }

@@ -10,7 +10,6 @@ class VisitorManager implements TuioListener
 
   ArrayList<Visitor> visitors;
   HashMap<String, Visitor> idToVisitor;
-  
 
   VisitorManager(float tableSize, boolean verbose)
   {
@@ -51,9 +50,15 @@ class VisitorManager implements TuioListener
   {
     synchronized(this.visitors)
     {
-      for (Visitor v : this.visitors)
+      for (int i = this.visitors.size()-1; i >= 0; i--)
       {
+        Visitor v = this.visitors.get(i);
         v.update();
+
+        if (v.removedTime() > Config.visitorRemovedDelay)
+        {
+          this.removeVisitor(v.id);
+        }
       }
     }
   }
@@ -64,13 +69,16 @@ class VisitorManager implements TuioListener
     {
       for (Visitor v : this.visitors)
       {
-        v.display();
+        if (v.isInteractable())
+        {
+          v.display();
+        }
       } 
     }
   }
 
   void addVisitor(Visitor v)
-  {
+  {    
     if (!this.idToVisitor.containsKey(v.id))
     {
       synchronized (this.visitors)
@@ -81,16 +89,18 @@ class VisitorManager implements TuioListener
     }
     else
     {
-      println("ERROR: Visitor with ID: {} already found", v.id);
+      this.idToVisitor.get(v.id).removedAt = -1;
+      println("ERROR: Visitor with ID: %s already found", v.id);
     }
   }
   
   void removeVisitor(String id)
-  {
+  { 
     if (this.idToVisitor.containsKey(id))
     {
       Visitor v = this.idToVisitor.get(id);
-      synchronized(this.visitors) {
+      synchronized(this.visitors)
+      {
         v.alive = false;
         this.visitors.remove(v);
       }
@@ -98,7 +108,7 @@ class VisitorManager implements TuioListener
     }
     else
     {
-      println("ERROR: Cannot remove visitor with ID: {} - key not found", id);
+      println("ERROR: Cannot remove visitor with ID: %s - key not found", id);
     }
   }
 
@@ -142,7 +152,6 @@ class VisitorManager implements TuioListener
     if (this.verbose)
     {
       println("add cur "+tcur.getCursorID()+" ("+tcur.getSessionID()+ ") " +tcur.getX()+" "+tcur.getY());
-
     }
     
     Visitor v = new Visitor(
@@ -160,7 +169,7 @@ class VisitorManager implements TuioListener
   {
     if (this.verbose)
     {
-      println("set cur "+tcur.getCursorID()+" ("+tcur.getSessionID()+ ") " +tcur.getX()+" "+tcur.getY()+" "+tcur.getMotionSpeed()+" "+tcur.getMotionAccel());
+      //println("set cur "+tcur.getCursorID()+" ("+tcur.getSessionID()+ ") " +tcur.getX()+" "+tcur.getY()+" "+tcur.getMotionSpeed()+" "+tcur.getMotionAccel());
     }
     
     String id = String.format("T%d", tcur.getCursorID());
@@ -184,7 +193,13 @@ class VisitorManager implements TuioListener
     }
     
     String id = String.format("T%d", tcur.getCursorID());
-    this.removeVisitor(id);
+    
+    if (this.idToVisitor.containsKey(id))
+    {
+      this.idToVisitor.get(id).removedAt = millis();
+    }
+    
+    //this.removeVisitor(id);
   }
 
   // --------------------------------------------------------------

@@ -32,8 +32,8 @@ float previousMilli, deltaDiv, deltaTime;
 
 void setup()
 {
-  //size(1920, 1080, P3D);
-  fullScreen(P3D);
+  size(1920, 1080, P3D);
+  //fullScreen(P3D);
   frameRate(FPS);
   smooth(2);
  
@@ -77,6 +77,11 @@ void initialize()
 
 void initializeControlP5()
 {
+  if (!Config.showUserInterface)
+  {
+    return;
+  }
+  
   // Create a new ControlP5 instance if necessary
   if (cp5 == null)
   {

@@ -63,20 +63,24 @@ class FlowField
     PVector visitorFieldVector = new PVector(0, 0);
     
     // Calculate current color values including alpha
-    float alpha = constrain(100.0 + audioManager.getAmplitude()*255.0, 0.0, 255.0);
-    color c1 = color(red(selectedTheme.vectorFieldColors[0]), green(selectedTheme.vectorFieldColors[0]), blue(selectedTheme.vectorFieldColors[0]), alpha);
-    color c2 =  color(red(selectedTheme.vectorFieldColors[1]), green(selectedTheme.vectorFieldColors[1]), blue(selectedTheme.vectorFieldColors[1]), alpha);
+    int baseAlpha = int(constrain(audioManager.getAmplitude()*180.0, 64.0, 180.0));
+    color c1 = color(red(selectedTheme.vectorFieldColors[0]), green(selectedTheme.vectorFieldColors[0]), blue(selectedTheme.vectorFieldColors[0]));
+    color c2 =  color(red(selectedTheme.vectorFieldColors[1]), green(selectedTheme.vectorFieldColors[1]), blue(selectedTheme.vectorFieldColors[1]));
     
     for (int i = 0; i < cols; i++)
     {
       for (int j = 0; j < rows; j++)
       {
+        float alpha = baseAlpha;
+        
         // Calculate the effect of visitors on the flow field in this position     
         visitorFieldVector = calculateVisitorFieldVector(i, j, visitorFieldVector);        
-
+    
         // If there were visitors in range the flow field vector is the visitor field vector
         if (visitorFieldVector.x != 0 || visitorFieldVector.y != 0)
         {
+          alpha = 255;
+          
           field[i][j].set(visitorFieldVector.x, visitorFieldVector.y);
           blendField[i][j].set(visitorFieldVector.x, visitorFieldVector.y);
           blendTime[i][j] = millis();
@@ -85,6 +89,7 @@ class FlowField
         // field
         else
         {
+          
           // Calculate the perlin noise flow field in this position
           float m = 0.2;
           float theta = map(noise(j*m + i*m, j*m, frameCount*this.mutationSpeed), 0, 1, 0, TWO_PI);
@@ -93,6 +98,7 @@ class FlowField
           // field
           if (blendTime[i][j] > 0)
           { 
+            alpha = 255;
             float t = constrain((millis() - blendTime[i][j]) / 1000.0, 0.0, 1.0);
             
             // If the blend is complete zero out the blend time
@@ -119,7 +125,8 @@ class FlowField
         PShape part = this.vectors.getChild(i*rows + j);
         float a = atan2(field[i][j].y, field[i][j].x);
         float v = map(a, -PI, PI, 0, 1);
-        part.setStroke(lerpColor(c1, c2, v));
+        color c = lerpColor(c1, c2, v);
+        part.setStroke(color(red(c), green(c), blue(c), alpha));
 
         if (frameCount < 2 || abs(a - this.previousAngle[i][j]) > 0.174)
         {

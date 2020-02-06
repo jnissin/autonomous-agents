@@ -2,8 +2,9 @@ import java.util.Set;
 import java.util.HashSet;
 
 class Encounter
-{
+{ 
   String id;
+  PImage graphic;
   float sMin;
   float sMax;
   float dMin;
@@ -18,9 +19,10 @@ class Encounter
   float d;
   float s;
   
-  Encounter(String id, float sMin, float sMax, float dMin, float dMax, Visitor v1, Visitor v2)
+  Encounter(String id, PImage graphic, float sMin, float sMax, float dMin, float dMax, Visitor v1, Visitor v2)
   {
     this.id = id;
+    this.graphic = graphic;
     this.sMin = sMin;
     this.sMax = sMax;
     this.dMin = dMin;
@@ -54,15 +56,18 @@ class Encounter
     float alpha = map(this.d, this.dMin, this.dMax, 255, 0);
     color lineColor = color(255, 255, 255, alpha/2.0);
     color circleColor = color(0, 0, 255, alpha);
-
-    noStroke();
-    fill(circleColor);
-    circle(this.x, this.y, this.s);
     
     strokeWeight(map(d, this.dMin, this.dMax, 3, 0));
     stroke(lineColor);
     noFill();
     line(v1.location.x, v1.location.y, -1, v2.location.x, v2.location.y, -1);
+
+    imageMode(CENTER);
+    image(this.graphic, this.x, this.y, this.s, this.s);
+    imageMode(CORNER);
+    //noStroke();
+    //fill(circleColor);
+    //circle(this.x, this.y, this.s);
   }
   
   void dispose()
@@ -72,7 +77,7 @@ class Encounter
   
   boolean isActive()
   {
-    if (v1 != null && v1.alive && v2 != null && v2.alive)
+    if (v1 != null && v1.isInteractable() && v2 != null && v2.isInteractable())
     {
       return PVector.dist(v1.location, v2.location) < dMax;
     }
@@ -85,11 +90,17 @@ class EncounterManager
 {  
   ArrayList<Encounter> encounters;
   Set<String> encounterSet;
+  ArrayList<PImage> encounterGraphics;
   
   EncounterManager()
   {
-    this.encounters = new ArrayList<Encounter> ();
+    this.encounters = new ArrayList<Encounter>();
     this.encounterSet = new HashSet<String>();
+    this.encounterGraphics = new ArrayList<PImage>();
+    
+    this.encounterGraphics.add(loadImage("media/peach-green-flower1.png"));
+    this.encounterGraphics.add(loadImage("media/peach-green-flower2.png"));
+    this.encounterGraphics.add(loadImage("media/peach-green-flower3.png"));
   }
   
   void update()
@@ -103,10 +114,13 @@ class EncounterManager
         for (int j = i + 1; j < visitorManager.visitors.size(); j++)
         {
           Visitor v2 = visitorManager.visitors.get(j);
-          
-          if (!encounterSet.contains(getEncounterId(v1, v1)) && v1.location.dist(v2.location) < 300)
+
+          if (v1.isInteractable() && v2.isInteractable())
           {
-            this.addEncounter(v1, v2);
+            if (!encounterSet.contains(getEncounterId(v1, v1)) && v1.location.dist(v2.location) < Config.encounterDistanceMax)
+            {
+              this.addEncounter(v1, v2);
+            }
           }
         }
       }
@@ -149,8 +163,9 @@ class EncounterManager
       return;
     }
     
+    PImage graphic = this.encounterGraphics.get((int)random(0, this.encounterGraphics.size()-1));    
     this.encounterSet.add(encounterId);
-    this.encounters.add(new Encounter(encounterId, 5, 40, 100, 300, v1, v2));
+    this.encounters.add(new Encounter(encounterId, graphic, Config.encounterGraphicSizeMin, Config.encounterGraphicSizeMax, Config.encounterDistanceMin, Config.encounterDistanceMax, v1, v2));
   }
   
   void removeEncounter(Encounter encounter)

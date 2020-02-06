@@ -59,9 +59,12 @@ class FlockManager
     int numVisitors = visitorManager.visitors.size();
     PVector[] targets = new PVector[numVisitors];   
     
-    for (int i = 0; i < numVisitors; i++)
+    synchronized (visitorManager.visitors)
     {
-      targets[i] = visitorManager.visitors.get(i).location;
+      for (int i = 0; i < numVisitors; i++)
+      {
+        targets[i] = visitorManager.visitors.get(i).location;
+      }
     }
 
     for (Flock f : flocks)
