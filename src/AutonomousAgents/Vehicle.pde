@@ -34,7 +34,7 @@ class Vehicle
     this.lifeTime = lifeTime;
     this.remainingLifeTime = lifeTime;
     this.birthTime = millis();
-    this.trail = new Trail(16, this.vehicleColor);
+    this.trail = new Trail(12, this.vehicleColor);
   }
   
   void update()
@@ -82,10 +82,7 @@ class Vehicle
     }
     
     // Update the trail vertices every n frames (otherwise this gets heavy)
-    if (frameCount%1 == 0)
-    {
-      this.trail.addVertex(this.location.x, this.location.y);
-    }
+    this.trail.addVertex(this.location.x, this.location.y);
   }
   
   void setColor(color c)
@@ -120,6 +117,7 @@ class Vehicle
     this.trail.display(currentRadius, alpha);
     
     fill(this.vehicleColor, alpha);
+    noStroke();
     circle(this.location.x, this.location.y, currentRadius);
     
     // Vehicle is a triangle pointing in the direction of velocity; since it is drawn pointing up, we rotate it an additional 90 degrees.

@@ -21,7 +21,7 @@ class VehicleEmitter
     float posX = x + this.position.x;
     float posY = y + this.position.y;
 
-    Vehicle v = new Vehicle(flockId, posX, posY, 3.0, 1.5, 0.1, vehicleColor, (int)random(30, 60)*1000);
+    Vehicle v = new Vehicle(flockId, posX, posY, 3.0, 1.5, 0.1, vehicleColor, (int)random(Config.minVehicleLifeTime, Config.maxVehicleLifeTime));
     return v;
   }
   

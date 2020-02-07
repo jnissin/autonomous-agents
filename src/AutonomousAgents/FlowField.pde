@@ -63,7 +63,13 @@ class FlowField
     PVector visitorFieldVector = new PVector(0, 0);
     
     // Calculate current color values including alpha
-    int baseAlpha = int(constrain(audioManager.getAmplitude()*180.0, 120.0, 180.0));
+    int time = 10000;
+    int phase = millis()/time;
+    boolean increasing = phase%2 == 0 ? true : false;
+    int x = millis()%time;
+    int baseAlpha = (int)(increasing ? map(x, 0, time, 0, 180) : map(x, 0, time, 180, 0));
+    //int baseAlpha = int(map(sin((baseX+TWO_PI)*(baseX+TWO_PI)), -1, 1, 0, 180));
+    //int baseAlpha = int(constrain(audioManager.getAmplitude()*180.0, 120.0, 180.0));
     color c1 = color(red(selectedTheme.vectorFieldColors[0]), green(selectedTheme.vectorFieldColors[0]), blue(selectedTheme.vectorFieldColors[0]));
     color c2 =  color(red(selectedTheme.vectorFieldColors[1]), green(selectedTheme.vectorFieldColors[1]), blue(selectedTheme.vectorFieldColors[1]));
     

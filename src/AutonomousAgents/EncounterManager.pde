@@ -163,7 +163,7 @@ class EncounterManager
       return;
     }
     
-    PImage graphic = this.encounterGraphics.get((int)random(0, this.encounterGraphics.size()-1));    
+    PImage graphic = this.encounterGraphics.get(round(random(0, this.encounterGraphics.size()-1)));    
     this.encounterSet.add(encounterId);
     this.encounters.add(new Encounter(encounterId, graphic, Config.encounterGraphicSizeMin, Config.encounterGraphicSizeMax, Config.encounterDistanceMin, Config.encounterDistanceMax, v1, v2));
   }
