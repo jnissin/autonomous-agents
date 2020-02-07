@@ -1,6 +1,8 @@
 import java.util.Set;
 import java.util.HashSet;
 
+private static float FLOWER_SPEED = 0.1;
+
 class Encounter
 { 
   String id;
@@ -11,6 +13,7 @@ class Encounter
   float dMax;
   Visitor v1;
   Visitor v2;
+  float flower_angle;
   Obstacle obstacle;
   
   int createdAt;
@@ -29,6 +32,7 @@ class Encounter
     this.dMax = dMax;
     this.v1 = v1;
     this.v2 = v2;
+    this.flower_angle = 0;
     
     // TODO: Fix problem with disappearing visitors
     this.createdAt = millis();
@@ -44,10 +48,12 @@ class Encounter
   {
     this.x = (this.v1.location.x + this.v2.location.x) * 0.5;
     this.y = (this.v1.location.y + this.v2.location.y) * 0.5;
-    this.d = PVector.dist(v1.location, v2.location);
+    this.d = PVector.dist(v1.location, v2.location); // distance
     this.s =  map(this.d, this.dMin, this.dMax, this.sMax, this.sMin);
     this.obstacle.setPosition(this.x, this.y);
     this.obstacle.setDimensions(this.s/2, this.s/2);
+    float relative_dist = ((dMax - this.d))/(dMax);
+    this.flower_angle += deltaTime * FLOWER_SPEED * relative_dist;
   }
   
   void display()
@@ -64,7 +70,8 @@ class Encounter
     imageMode(CENTER);
     pushMatrix();
     translate(x, y, 1);
-    rotate((millis()-this.createdAt) * 0.0002);
+    
+    rotate(this.flower_angle);
     image(this.graphic, 0, 0, this.s, this.s);
     popMatrix();
     imageMode(CORNER);
