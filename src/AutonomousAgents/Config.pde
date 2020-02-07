@@ -13,4 +13,9 @@ static class Config
   public static final boolean showUserInterface = true;
   public static final int minVehicleLifeTime = 40*1000;
   public static final int maxVehicleLifeTime = 120*1000;
+  public static final PVector[] spawnPoints = new PVector[] {
+    new PVector(150, 1080/2), new PVector(1920-150, 1080/2), new PVector(1920/2, 150), new PVector(1920/2, 1080-150)
+  };
+  public static int currentSpawnPointIdx = 0;
+  public static float spawnAreaRadius = 70;
 }

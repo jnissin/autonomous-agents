@@ -8,7 +8,7 @@ class Flock
   BehaviourSet behaviourSet;
   VehicleEmitter vehicleEmitter;
   
-  Flock(int id, int size, color flockColor, BehaviourSet behaviourSet, float emitterPositionX, float emitterPositionY, float emitterRadius)
+  Flock(int id, int size, color flockColor, BehaviourSet behaviourSet)
   {
     this.id = id;
     this.size = size;
@@ -16,7 +16,10 @@ class Flock
     this.vehicles = new ArrayList<Vehicle>();
     this.deadVehicles = new ArrayList<Vehicle>();
     this.behaviourSet = behaviourSet;
-    this.vehicleEmitter = new VehicleEmitter(emitterPositionX, emitterPositionY, emitterRadius);
+    
+    PVector emitterPosition = Config.spawnPoints[Config.currentSpawnPointIdx];
+    Config.currentSpawnPointIdx = (Config.currentSpawnPointIdx + 1) % Config.spawnPoints.length;
+    this.vehicleEmitter = new VehicleEmitter(emitterPosition.x, emitterPosition.y, Config.spawnAreaRadius);
     
     this.initialize();
   }
@@ -68,7 +71,7 @@ class Flock
       v.display();
     }
     
-    this.vehicleEmitter.display();
+    //this.vehicleEmitter.display();
   }
   
   void setColor(color c)
