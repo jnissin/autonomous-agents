@@ -67,9 +67,11 @@ class FlowField
     int phase = millis()/time;
     boolean increasing = phase%2 == 0 ? true : false;
     int x = millis()%time;
-    int baseAlpha = (int)(increasing ? map(x, 0, time, 0, 180) : map(x, 0, time, 180, 0));
+    int baseAlpha = (int)(increasing ? map(x, 0, time, 100, 210) : map(x, 0, time, 210, 100));
+    
     //int baseAlpha = int(map(sin((baseX+TWO_PI)*(baseX+TWO_PI)), -1, 1, 0, 180));
     //int baseAlpha = int(constrain(audioManager.getAmplitude()*180.0, 120.0, 180.0));
+    
     color c1 = color(red(selectedTheme.vectorFieldColors[0]), green(selectedTheme.vectorFieldColors[0]), blue(selectedTheme.vectorFieldColors[0]));
     color c2 =  color(red(selectedTheme.vectorFieldColors[1]), green(selectedTheme.vectorFieldColors[1]), blue(selectedTheme.vectorFieldColors[1]));
     
@@ -85,10 +87,10 @@ class FlowField
         // If there were visitors in range the flow field vector is the visitor field vector
         if (visitorFieldVector.x != 0 || visitorFieldVector.y != 0)
         {
-          alpha = 255;
+          alpha = visitorFieldVector.z;
           
           field[i][j].set(visitorFieldVector.x, visitorFieldVector.y);
-          blendField[i][j].set(visitorFieldVector.x, visitorFieldVector.y);
+          blendField[i][j].set(visitorFieldVector.x, visitorFieldVector.y, alpha);
           blendTime[i][j] = millis();
         }
         // Otherwise the flow field is a blend between past visitor field vector and Perlin noise flow
@@ -104,7 +106,6 @@ class FlowField
           // field
           if (blendTime[i][j] > 0)
           { 
-            alpha = 255;
             float t = constrain((millis() - blendTime[i][j]) / 1000.0, 0.0, 1.0);
             
             // If the blend is complete zero out the blend time
@@ -115,6 +116,7 @@ class FlowField
             }
             else
             {
+              alpha = blendField[i][j].z;
               field[i][j] = PVector.lerp(blendField[i][j], new PVector(cos(theta), sin(theta)), this.smoothstep(0.0, 1.0, t));
             }
           }
@@ -170,6 +172,7 @@ class FlowField
     // Calculate the exact pixel value in the middle of the bin
     int px = (col+1)*this.resolution - this.resolution/2;
     int py = (row+1)*this.resolution - this.resolution/2;
+    float alpha = 0;
     PVector position = new PVector(px, py);
     
     synchronized(visitorManager.visitors)
@@ -179,14 +182,17 @@ class FlowField
         if (v.positionInRange(position))
         {
           PVector vf = v.getVectorField(position, this.resolution);
-          out = out.add(vf.x, vf.y);
+          out = out.add(vf.x, vf.y); // THIS IS A TERRIBLE HACK
+          alpha += v.getVisitorAlpha();
           visitorsInRange += 1;
         }
       }
     }
     
     // Multiply the force of the flow field by the number of visitors in range
-    return out.normalize(out).mult(visitorsInRange);
+    out = out.normalize(out).mult(visitorsInRange);
+    out.z = alpha/visitorsInRange;
+    return out;
   }
   
   float smoothstep(float edge0, float edge1, float x) {

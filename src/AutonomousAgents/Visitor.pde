@@ -44,13 +44,18 @@ class Visitor
   void display()
   {
     noStroke();
-    fill(this.active ? this.activeColor : this.inactiveColor);
+    fill(this.active ? this.activeColor : selectedTheme.backgroundColor);
     circle(this.location.x, this.location.y, this.r);
   }
   
   boolean isInteractable()
   {
     return this.alive && this.lifeTime() > Config.visitorAddedDelay;
+  }
+  
+  int getVisitorAlpha()
+  {
+    return round(map(this.removedTime(), 0, Config.visitorRemovedDelay, 255, 0));
   }
   
   int lifeTime()
