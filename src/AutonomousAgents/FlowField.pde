@@ -79,7 +79,7 @@ class FlowField
     {
       for (int j = 0; j < rows; j++)
       {
-        float alpha = baseAlpha;
+        int alpha = baseAlpha;
         
         // Calculate the effect of visitors on the flow field in this position     
         visitorFieldVector = calculateVisitorFieldVector(i, j, visitorFieldVector);        
@@ -87,8 +87,7 @@ class FlowField
         // If there were visitors in range the flow field vector is the visitor field vector
         if (visitorFieldVector.x != 0 || visitorFieldVector.y != 0)
         {
-          alpha = visitorFieldVector.z;
-          
+          alpha = round(constrain(visitorFieldVector.z, baseAlpha, 255));
           field[i][j].set(visitorFieldVector.x, visitorFieldVector.y);
           blendField[i][j].set(visitorFieldVector.x, visitorFieldVector.y, alpha);
           blendTime[i][j] = millis();
@@ -96,8 +95,7 @@ class FlowField
         // Otherwise the flow field is a blend between past visitor field vector and Perlin noise flow
         // field
         else
-        {
-          
+        { 
           // Calculate the perlin noise flow field in this position
           float m = 0.2;
           float theta = map(noise(j*m + i*m, j*m, frameCount*this.mutationSpeed), 0, 1, 0, TWO_PI);
@@ -116,8 +114,8 @@ class FlowField
             }
             else
             {
-              alpha = blendField[i][j].z;
-              field[i][j] = PVector.lerp(blendField[i][j], new PVector(cos(theta), sin(theta)), this.smoothstep(0.0, 1.0, t));
+              alpha = round(constrain(blendField[i][j].z, baseAlpha, 255));
+              field[i][j] = PVector.lerp(new PVector(blendField[i][j].x, blendField[i][j].y), new PVector(cos(theta), sin(theta)), this.smoothstep(0.0, 1.0, t));
             }
           }
           else
@@ -134,6 +132,7 @@ class FlowField
         float a = atan2(field[i][j].y, field[i][j].x);
         float v = map(a, -PI, PI, 0, 1);
         color c = lerpColor(c1, c2, v);
+        
         part.setStroke(color(red(c), green(c), blue(c), alpha));
 
         if (frameCount < 2 || abs(a - this.previousAngle[i][j]) > 0.174)
@@ -191,7 +190,10 @@ class FlowField
     
     // Multiply the force of the flow field by the number of visitors in range
     out = out.normalize(out).mult(visitorsInRange);
-    out.z = alpha/visitorsInRange;
+    if (visitorsInRange > 0)
+    {
+      out.z = alpha/visitorsInRange;
+    }
     return out;
   }
   
