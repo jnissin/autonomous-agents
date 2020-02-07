@@ -8,6 +8,7 @@ class ArriveBehaviour extends Behaviour
   ArriveBehaviour(String name, float multiplier, boolean global, float senseRadius, float rampDownDistance)
   {
     super(name, multiplier);
+    this.global = global;
     this.senseRadius = senseRadius;
     this.rampDownDistance = rampDownDistance;
   }
@@ -15,6 +16,7 @@ class ArriveBehaviour extends Behaviour
   ArriveBehaviour(String name, float multiplier, boolean global, float senseRadius, float rampDownDistance, boolean syncToMusic, int band, float minBandValue, float maxBandValue, float bandSensitivity)
   {
     super(name, multiplier, syncToMusic, band, minBandValue, maxBandValue, bandSensitivity);
+    this.global = global;
     this.senseRadius = senseRadius;
     this.rampDownDistance = rampDownDistance;
   }
@@ -37,7 +39,7 @@ class ArriveBehaviour extends Behaviour
     // Get the distance to the target
     float d = desired.mag();
     
-    if (!global && d > senseRadius)
+    if (!this.global && d > senseRadius)
     {
       return new PVector(0, 0);
     }

@@ -1,4 +1,8 @@
 final Theme[] THEMES = new Theme[] {
+    new Theme("Opera 1",
+              new color[] { #f662b2, #f18c8a, #fc3753, #8fe9ac, #fac904 },
+              new color[] { #8bb099, #af6f86 },
+              #000000 ),
     new Theme("Magma",
               new color[] { #3A0300, #5D0D02, #EB4700, #FF9F01, #CD5201 },
               new color[] { #3A0300, #5D0D02 },
@@ -39,7 +43,7 @@ public class Theme
      this.backgroundColor = backgroundColor;
      
      this.currentColorIdx = 0;
-     this.colorStepSize = 0.1f;
+     this.colorStepSize = 1.0f;
      this.colorProgress = 0.0f;
   }
   
@@ -52,7 +56,7 @@ public class Theme
     color c = lerpColor(currentColor, nextColor, this.colorProgress);
     this.colorProgress += colorStepSize;
     
-    if (this.colorProgress > 1.0f)
+    if (this.colorProgress >= 1.0f)
     {
       this.currentColorIdx = nextColorIdx;
       this.colorProgress = 0.0f;

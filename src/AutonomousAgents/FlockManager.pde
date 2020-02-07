@@ -40,11 +40,11 @@ class FlockManager
       bs.addBehaviour(new FollowFlowFieldBehaviour("followFlowField", random(0.8, 1.2), field));
       bs.addBehaviour(new SeparateBehaviour("separate", random(1.3, 1.7), 40.0));
       bs.addBehaviour(new AlignBehaviour("align", random(0.8, 1.2), 50.0));
-      bs.addBehaviour(new CohesionBehaviour("cohesion", random(0.8, 1.2), 50.0, true, 0, 1, -1, 2));
+      bs.addBehaviour(new CohesionBehaviour("cohesion", random(0.8, 1.2), 50.0, false, 0, 1, -1, 0.5));
       bs.addBehaviour(new ArriveBehaviour("arriveToVisitor", random(0, 1) < 0.5 ? -0.5 : 0.2, false, 300.0, 100.0));
       bs.addBehaviour(new AvoidObstaclesBehaviour("avoidObstacles", 1.0));
       
-      this.addFlock(i, this.initialFlockSize, selectedTheme.getRandomThemeColor(), bs);
+      this.addFlock(i, this.initialFlockSize, selectedTheme.getNextThemeColor(), bs);
     }
   }
 

@@ -274,7 +274,7 @@ class ObstacleManager
     PShape box = createShape(RECT, x-(r*2), y-(r*2), r*2, r*2);
     box.setStroke(false);
     box.setTexture(loadImage("media/peach-green-flower3.png"));
-    BoundingCircle boundingCircle = new BoundingCircle(x, y, r);
+    BoundingCircle boundingCircle = new BoundingCircle(x-r, y-r, r);
     Obstacle obstacle = new Obstacle(new PVector(x, y), box, boundingCircle, hidden);
     this.obstacles.add(obstacle);
     return obstacle;

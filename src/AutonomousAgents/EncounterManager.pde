@@ -55,7 +55,6 @@ class Encounter
     float d = PVector.dist(v1.location, v2.location);
     float alpha = map(this.d, this.dMin, this.dMax, 255, 0);
     color lineColor = color(255, 255, 255, alpha/2.0);
-    color circleColor = color(0, 0, 255, alpha);
     
     strokeWeight(map(d, this.dMin, this.dMax, 3, 0));
     stroke(lineColor);
@@ -63,11 +62,12 @@ class Encounter
     line(v1.location.x, v1.location.y, -1, v2.location.x, v2.location.y, -1);
 
     imageMode(CENTER);
-    image(this.graphic, this.x, this.y, this.s, this.s);
+    pushMatrix();
+    translate(x, y, 1);
+    rotate((millis()-this.createdAt) * 0.0002);
+    image(this.graphic, 0, 0, this.s, this.s);
+    popMatrix();
     imageMode(CORNER);
-    //noStroke();
-    //fill(circleColor);
-    //circle(this.x, this.y, this.s);
   }
   
   void dispose()
